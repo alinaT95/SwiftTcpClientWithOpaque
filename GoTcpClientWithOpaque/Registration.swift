@@ -29,7 +29,7 @@ struct PwRegMsg2ForParsing : Codable {
     var PubS: Point
 }
 
-class PwRegMsg2 {
+struct PwRegMsg2 {
     let B: AffinePoint<Secp256r1>
     let PubS: PublicKey<Secp256r1>
     init(_ b: AffinePoint<Secp256r1>, _ pubS: PublicKey<Secp256r1>){
@@ -38,7 +38,7 @@ class PwRegMsg2 {
     }
 }
 
-class PwRegMsg3 {
+struct PwRegMsg3 {
     let EnvU: Data
     let PubU: PublicKey<Secp256r1>
     init(_ envU: Data, _ pubU: PublicKey<Secp256r1>){
@@ -47,7 +47,7 @@ class PwRegMsg3 {
     }
 }
 
-class PwRegClientSession {
+struct PwRegClientSession {
     let userName: String
     let a: AffinePoint<Secp256r1>
     let r: Number
@@ -60,7 +60,7 @@ class PwRegClientSession {
     }
 }
 
-class RegInitResult {
+struct RegInitResult {
     let pwRegClientSession: PwRegClientSession
     let pwRegMsg1:PwRegMsg1
     init(_ pwRegClientSession: PwRegClientSession, _ pwRegMsg1:PwRegMsg1) {
@@ -73,9 +73,9 @@ class Registration {
     
     let crypto = Crypto()
     
-    func createPwRegMsg1JSon(_ userName: String, _ msg1: PwRegMsg1) throws -> String {
+    func createPwRegMsg1JSon(_ msg1: PwRegMsg1) throws -> String {
         var data: [String : Any] = [:]
-        data["userName"] = userName
+        data["userName"] = msg1.userName
         data["a"] = ["x" : msg1.a.x.asDecimalString(), "y" : msg1.a.y.asDecimalString()]
         let jsonData = try JSONSerialization.data(withJSONObject: data)
         let jsonString = String(data: jsonData, encoding: .utf8)!

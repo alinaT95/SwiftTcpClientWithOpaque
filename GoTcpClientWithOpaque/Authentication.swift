@@ -10,7 +10,7 @@ import EllipticCurveKit
 import CryptoSwift
 
 
-class AuthClientSession {
+struct AuthClientSession {
     let userName: String
     let a: AffinePoint<Secp256r1>
     let r: Number
@@ -28,7 +28,7 @@ class AuthClientSession {
     
 }
 
-class AuthMsg1 {
+struct AuthMsg1 {
     let userName: String
     let a: AffinePoint<Secp256r1>
     let ePubU: PublicKey<Secp256r1>
@@ -41,7 +41,7 @@ class AuthMsg1 {
     }
 }
 
-class AuthMsg2 {
+struct AuthMsg2 {
     let b: AffinePoint<Secp256r1>
     let envU: Data
     let nonceS: Data
@@ -56,14 +56,14 @@ class AuthMsg2 {
     }
 }
 
-class AuthMsg3 {
+struct AuthMsg3 {
     let mac2: Data
     init(_ mac2: Data){
         self.mac2 = mac2
     }
 }
 
-class AuthInitResult {
+struct AuthInitResult {
     let authClientSession: AuthClientSession
     let authMsg1: AuthMsg1
     init(_ authClientSession: AuthClientSession, _ authMsg1: AuthMsg1) {
@@ -75,13 +75,26 @@ class AuthInitResult {
 class Authentication {
     let crypto = Crypto()
     
+    func createAuthMsg1JSon(_ msg1: AuthMsg1) throws -> String {
+        var data: [String : Any] = [:]
+        data["UserName"] = msg1.userName
+        data["A"] = ["x" : msg1.a.x.asDecimalString(), "y" : msg1.a.y.asDecimalString()]
+        data["NonceU"] = msg1.nonceU.hexEncodedString()
+        data["EphemeralPubU"] = ["x" : msg1.ePubU.point.x.asDecimalString(), "y" : msg1.ePubU.point.y.asDecimalString()]
+        let jsonData = try JSONSerialization.data(withJSONObject: data)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+        print(jsonString)
+        return jsonString
+    }
+    
     // AuthInit initiates the authentication protocol. It's run on the client and,
     // on success, returns a nil error, a client auth session, and an AuthMsg1
     // struct. The AuthMsg1 struct should be sent to the server.
     func authInit(_ username: String, _ password: String) throws -> AuthInitResult {
+        print("Client started computations for authInit...")
         let dhOprf1Res: DhOprf1Result = crypto.dhOprf1(Data(_ : password.bytes))
         let ephemeralKeyPairU = AnyKeyGenerator<Secp256r1>.generateNewKeyPair()
-        let nonceU = try ByteArrayAndHexHelper().randomData(32)
+        let nonceU = try ByteArrayAndHexHelper().randomData(Crypto.NONCE_LEN)
         let msg1 = AuthMsg1(username, dhOprf1Res.a, ephemeralKeyPairU.publicKey, nonceU)
         let session = AuthClientSession(username, dhOprf1Res.a, dhOprf1Res.r, password, nonceU, ephemeralKeyPairU)
         return AuthInitResult(session, msg1)

@@ -25,6 +25,7 @@ class ViewController: UIViewController {
     let decoder = JSONDecoder()
     
     var regClientSession: PwRegClientSession?
+    var authClientSession: AuthClientSession?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,41 +34,76 @@ class ViewController: UIViewController {
     
     
     @IBAction func logIn(_ sender: Any) {
+        print("Start log in...")
+        let userNameStr = userName.text ?? "Alina"
+        let passwordStr = password.text ?? "123456"
         let client = TCPClient(address: ipServer, port: Int32(port))
-        
-        // Do any additional setup after loading the view.
-        
-        /*   let expected = AffinePoint<Secp256r1>(
-         x: 1,
-         y: 0
-         )
-         let expected2 = AffinePoint<Secp256r1>(
-         x: 0,
-         y: 2
-         )*/
-        // guard let x = Number("89", radix: 10) else { return <#default value#> }
-        // _ = expected * x
-        
-        //  let G = Secp256r1.G
-        // let nPlusOne = Secp256r1.order + 1
-        
-        
-        /*  let pointNPlusOne: AffinePoint<Secp256r1> = expected * nPlusOne
-         let publicKey = PublicKey<Secp256r1>(point: Secp256r1.G * nPlusOne)
-         
-         let pointNPlus: AffinePoint<Secp256r1> =  AffinePoint<Secp256r1>.addition(expected, expected2) ?? G*/
-        
-        /*     let point: AffinePoint<Secp256r1> =  Crypto().hashToECDummy(Data(_: [0x01, 0x02]))
-         print("here")
-         print(point.x)
-         print(point.y)*/
-        
-        /*  switch client.connect(timeout: 10) {
-         case .success:
-         print("y")
-         case .failure(let error):
-         print("n")
-         }*/
+        switch client.connect(timeout: 100) {
+        case .success:
+            print("Connected to server...")
+            Promise<Data> { promise in
+                print("Start client authentication...")
+                let authInitRes = try self.authenticator.authInit(userNameStr, passwordStr)
+                self.authClientSession = authInitRes.authClientSession
+                let msg1JsonString = try self.authenticator.createAuthMsg1JSon(authInitRes.authMsg1)
+                
+                var dataFinal = Data("auth\n".bytes)
+                dataFinal.append(contentsOf: msg1JsonString.bytes)
+                dataFinal.append(contentsOf: "\n".bytes)
+                
+                switch client.send(data: dataFinal) {
+                case .success:
+                    print("Authentication init request was sent succesfully.")
+                    promise.fulfill(Data(_ : []))
+                case .failure(let error):
+                    print("Authentication init request was failed.")
+                    print(error)
+                    promise.reject(error)
+                }
+                
+                promise.fulfill(Data(_ : []))
+            
+            }
+            .then{(dummyResponse : Data)  -> Promise<Data> in
+                return Promise { promise in
+                    guard let data = client.read(1024*10, timeout: 100) else {
+                        promise.reject(NSError(domain:"", code:0, userInfo: [NSLocalizedDescriptionKey: "Can not read data from server."]))
+                        return
+                    }
+                    if let response = String(bytes: data, encoding: .utf8) {
+                        
+                        if response.contains("No such user") {
+                            promise.reject(NSError(domain:"", code:0, userInfo: [NSLocalizedDescriptionKey: "No such user on server."] ))
+                        }
+                        else {
+                            print("Got json from server:")
+                            print(response)
+                            promise.fulfill(Data(_ :data))
+                        }
+                    }
+                    else{
+                        promise.reject(NSError(domain:"", code:0, userInfo: [NSLocalizedDescriptionKey: "Data from server is corrupted."] ))
+                    }
+                }
+                
+            }
+            .done{response in
+                print("Done")
+                self.authClientSession = nil
+                let alert = UIAlertController(title: "Notification", message: "User was authenticated on server.", preferredStyle: UIAlertController.Style.alert)
+                alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
+            }
+            .catch{ error in
+                print("Error happened : " + error.localizedDescription)
+                self.authClientSession = nil
+                let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: UIAlertController.Style.alert)
+                alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
+            }
+        case .failure(let error):
+            print("Can not establish TCP connection with server having IP address " + ipServer + ".")
+        }
         
     }
     
@@ -85,7 +121,7 @@ class ViewController: UIViewController {
                 print("Start client registration...")
                 let regInitRes = self.registrator.regInit(userNameStr, passwordStr)
                 self.regClientSession = regInitRes.pwRegClientSession
-                let msg1JsonString = try self.registrator.createPwRegMsg1JSon(userNameStr, regInitRes.pwRegMsg1)
+                let msg1JsonString = try self.registrator.createPwRegMsg1JSon(regInitRes.pwRegMsg1)
                 
                 var dataFinal = Data("pwreg\n".bytes)
                 dataFinal.append(contentsOf: msg1JsonString.bytes)
@@ -197,12 +233,18 @@ class ViewController: UIViewController {
     
             .done{response in
                 print("Done")
+                self.regClientSession = nil
                 let alert = UIAlertController(title: "Notification", message: "User password was registered on server.", preferredStyle: UIAlertController.Style.alert)
                 alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
                 self.present(alert, animated: true, completion: nil)
             }
             .catch{ error in
                 print("Error happened : " + error.localizedDescription)
+                self.regClientSession = nil
+                
+                let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: UIAlertController.Style.alert)
+                alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
             }
         case .failure(let error):
             print("Can not establish TCP connection with server having IP address " + ipServer + ".")
@@ -211,3 +253,37 @@ class ViewController: UIViewController {
     }
 }
 
+
+// Do any additional setup after loading the view.
+
+/*   let expected = AffinePoint<Secp256r1>(
+ x: 1,
+ y: 0
+ )
+ let expected2 = AffinePoint<Secp256r1>(
+ x: 0,
+ y: 2
+ )*/
+// guard let x = Number("89", radix: 10) else { return <#default value#> }
+// _ = expected * x
+
+//  let G = Secp256r1.G
+// let nPlusOne = Secp256r1.order + 1
+
+
+/*  let pointNPlusOne: AffinePoint<Secp256r1> = expected * nPlusOne
+ let publicKey = PublicKey<Secp256r1>(point: Secp256r1.G * nPlusOne)
+ 
+ let pointNPlus: AffinePoint<Secp256r1> =  AffinePoint<Secp256r1>.addition(expected, expected2) ?? G*/
+
+/*     let point: AffinePoint<Secp256r1> =  Crypto().hashToECDummy(Data(_: [0x01, 0x02]))
+ print("here")
+ print(point.x)
+ print(point.y)*/
+
+/*  switch client.connect(timeout: 10) {
+ case .success:
+ print("y")
+ case .failure(let error):
+ print("n")
+ }*/
