@@ -1,0 +1,6 @@
+framework module Pods_GoTcpClientWithOpaqueTests {
+  umbrella header "Pods-GoTcpClientWithOpaqueTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
