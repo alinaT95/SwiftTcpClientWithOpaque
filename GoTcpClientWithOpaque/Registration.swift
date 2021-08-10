@@ -115,7 +115,8 @@ class Registration {
         let keyPairU = AnyKeyGenerator<Secp256r1>.generateNewKeyPair()
         let nonce = try ByteArrayAndHexHelper().randomData(Crypto.NONCE_LEN)
         print("Nonce = " + nonce.hexEncodedString())
-        print("privateKey length = " +  String(keyPairU.privateKey.asData.count))
+        print("privateKeyU = " + keyPairU.privateKey.asData.hexEncodedString())
+        print("privateKeyU length = " +  String(keyPairU.privateKey.asData.count))
         let envKeys = try crypto.produceKeysToEncryptEnvelope(nonce, randomizedPassword)
         let keyEnc: Data = envKeys.keyEnc
         let keyMac: Data = envKeys.keyMac

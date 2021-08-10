@@ -116,12 +116,14 @@ class Authentication {
     // protocol for the client.
     func auth2(session: AuthClientSession, msg2:  AuthMsg2) throws -> AuthMsg3 {
         let randomizedPassword = try crypto.dhOprf3(Data(_ : session.password.bytes), msg2.b, r: session.r)
-        print("randomizedPassword from authentication flow = " + randomizedPassword.hexEncodedString())      /*  let nonce = msg2.envU[0..<32]
+        print("randomizedPassword from authentication flow = " + randomizedPassword.hexEncodedString())
+        let nonce = Data(_ : msg2.envU[0..<Crypto.NONCE_LEN])
         let commonKeys = try crypto.produceKeysToEncryptEnvelope(nonce, randomizedPassword)
         let keyEnc: Data = commonKeys.keyEnc
         let keyMac: Data = commonKeys.keyMac
         let skUBytes = try AuthEnc().decrypt(msg2.envU, keyEnc, keyMac)
         let skU = skUBytes.toNumber()
+        print("skUBytes = " + skUBytes.hexEncodedString())
         let pubSX = msg2.envU[64..<96]
         let pubSY = msg2.envU[96..<128]
         let pubS = AffinePoint<Secp256r1>(
@@ -129,6 +131,7 @@ class Authentication {
             y: pubSY.toNumber()
         )
         
+      
         var XCrypt = Data(_ : session.a.x.asTrimmedData())
         XCrypt.append(session.a.y.asTrimmedData())
         XCrypt.append(session.nonceU)
@@ -144,8 +147,12 @@ class Authentication {
         
         var info = Data(_: "HMQVKeys".bytes)
         info.append(session.nonceU)
-        info.append(msg2.nonceS)
-        info.append(session.userName.toData())
+        //info.append(msg2.nonceS)
+       // info.append(session.userName.toData())
+        print("session.nonceU = " + session.nonceU.hexEncodedString())
+        print("XCrypt = " + XCrypt.hexEncodedString())
+        print("info = " + info.hexEncodedString())
+        
         
         var Q1Input = Data(_ : session.ephemeralKeyPairU.publicKey.x.asTrimmedData())
         Q1Input.append(session.ephemeralKeyPairU.publicKey.y.asTrimmedData())
@@ -157,12 +164,21 @@ class Authentication {
         Q2Input.append("srvr".toData())
         Q2Input.append(info)
         
+        print("Q1Input.hash() = " + Q1Input.hash().hexEncodedString())
+        print("Q2Input.hash() = " + Q2Input.hash().hexEncodedString())
+        
         let Q1 = Q1Input.hash().toNumber()
         let Q2 = Q2Input.hash().toNumber()
+        
+        
         
         let exp = Q2 * skU + session.ephemeralKeyPairU.privateKey.number
         let pubSQ1: AffinePoint<Secp256r1> = pubS * Q1
         let ikmU = AffinePoint<Secp256r1>.addition(msg2.ePubS.point, pubSQ1)!
+        
+        print("ikmU.x = " + ikmU.x.asDecimalString())
+        print("ikmU.y = " + ikmU.y.asDecimalString())
+        
         var secret = Data(_ : ikmU.x.asTrimmedData())
         secret.append(ikmU.y.asTrimmedData())
         
@@ -171,19 +187,22 @@ class Authentication {
         
         let keyStreamData = keyStream.asData
         let SK: Data = keyStreamData[0..<32]
-        let Km2: Data = keyStreamData[32..<64]
-        let Km3: Data = keyStreamData[64..<96]
+        print("SK = " + SK.hexEncodedString())
         
+        let Km2: Data = keyStreamData[32..<64]
+        print("Km2 = " + Km2.hexEncodedString())
+        let Km3: Data = keyStreamData[64..<96]
+        print("Km3 = " + Km3.hexEncodedString())
         let res = HmacHelper().verifyHmac(key: Km3, data: XCrypt, macToVerify: msg2.mac1)
         if (!res) {
             throw "Mac is corrupted!"
         }
-        
         var XCrypt2 = "Finish".toData()
         XCrypt2.append(XCrypt)
-        let mac2 = HmacHelper().computeHmac(key: Km3, data: XCrypt2)*/
-        let mac2 = Data(_ : [])
+        let mac2 = HmacHelper().computeHmac(key: Km3, data: XCrypt2)
         return AuthMsg3(mac2)
+//        let mac2 = Data(_ : [])
+        
     }
     
 }

@@ -23,6 +23,9 @@ class AuthEnc{
     func xorTransform(_ text: Data, _ key: Data) -> Data {
         //check lens
         var xored = Data(_ : [])
+        print(text.count)
+        print(key.count)
+        print(text.hexEncodedString())
         for index in 0...text.count-1 {
             xored.append(text[index] ^ key[index])
         }
@@ -34,7 +37,7 @@ class AuthEnc{
         if (!res) {
             throw "Mac is corrupted."
         }
-        let ciphertext = envelopeU[32..<64]
+        let ciphertext = Data(_ : envelopeU[32..<64])
         let plaintext = xorTransform(ciphertext, keyEnc)
         return plaintext
     }
