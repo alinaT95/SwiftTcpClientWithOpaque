@@ -15,8 +15,8 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var password: UITextField!
     
-    let userNameStr = "Alina"
-    let passwordStr = "123456"
+  //  let userNameStr = "Alina"
+ //   let passwordStr = "123456"
     let registrator = Registration()
     let authenticator = Authentication()
     let ipServer = "37.112.236.247"
@@ -75,15 +75,17 @@ class ViewController: UIViewController {
     
     @IBAction func signUp(_ sender: Any) {
         print("Start sign up...")
+        let userNameStr = userName.text ?? "Alina"
+        let passwordStr = password.text ?? "123456"
         let client = TCPClient(address: ipServer, port: Int32(port))
         switch client.connect(timeout: 100) {
         case .success:
             print("Connected to server...")
             Promise<Data> { promise in
                 print("Start client registration...")
-                let regInitRes = self.registrator.regInit(self.userNameStr, self.passwordStr)
+                let regInitRes = self.registrator.regInit(userNameStr, passwordStr)
                 self.regClientSession = regInitRes.pwRegClientSession
-                let msg1JsonString = try self.registrator.createPwRegMsg1JSon(self.userNameStr, regInitRes.pwRegMsg1)
+                let msg1JsonString = try self.registrator.createPwRegMsg1JSon(userNameStr, regInitRes.pwRegMsg1)
                 
                 var dataFinal = Data("pwreg\n".bytes)
                 dataFinal.append(contentsOf: msg1JsonString.bytes)
@@ -192,9 +194,12 @@ class ViewController: UIViewController {
                 }
                 
             }
-            
+    
             .done{response in
                 print("Done")
+                let alert = UIAlertController(title: "Notification", message: "User password was registered on server.", preferredStyle: UIAlertController.Style.alert)
+                alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
+                self.present(alert, animated: true, completion: nil)
             }
             .catch{ error in
                 print("Error happened : " + error.localizedDescription)
