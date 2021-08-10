@@ -20,7 +20,7 @@ class DhOprf1Result {
     
 }
 
-class CommonSecretKeys {
+class EnvelopeKeys {
     let keyEnc: Data
     let keyMac: Data
     init(_ keyEnc: Data, _ keyMac: Data){
@@ -30,6 +30,11 @@ class CommonSecretKeys {
 }
 
 class Crypto {
+    static let SAULT_LEN = 32
+    static let NONCE_LEN = 32
+    static let EC_PRIVATE_KEY_LEN = 32
+    static let EC_POINT_COORDINATE_LEN = 32
+    
     func hashToECDummy(_ data: Data) -> AffinePoint<Secp256r1> {
         let G = Secp256r1.G
         print(G.x)
@@ -77,15 +82,15 @@ class Crypto {
         return dataToHash.hash()
     }
     
-    func produceSessionKeys(_ nonce: Data, _ randomizedPassword: Data) throws -> CommonSecretKeys {
+    func produceKeysToEncryptEnvelope(_ nonce: Data, _ randomizedPassword: Data) throws -> EnvelopeKeys {
         var info = Data(_ : nonce.bytes)
         info.append(contentsOf: "EnvU".bytes)
-        let hkdf = try HKDF(password: Array(randomizedPassword), salt: nil, info: Array(info), keyLength: 96, variant: .sha256)
+        let hkdf = try HKDF(password: Array(randomizedPassword), salt: Array(Data(count: Crypto.SAULT_LEN).bytes), info: Array(info), keyLength: Crypto.EC_PRIVATE_KEY_LEN + 2*Crypto.NONCE_LEN, variant: .sha256)
         let keyStream = try hkdf.calculate()
         let keyStreamData = keyStream.asData
-        let keyEnc: Data = keyStreamData[0..<32]
-        let keyMac: Data = keyStreamData[32..<64]
-        return CommonSecretKeys(keyEnc, keyMac)
+        let keyEnc: Data = keyStreamData[0..<Crypto.EC_PRIVATE_KEY_LEN]
+        let keyMac: Data = keyStreamData[Crypto.EC_PRIVATE_KEY_LEN..<Crypto.EC_PRIVATE_KEY_LEN + Crypto.NONCE_LEN]
+        return EnvelopeKeys(keyEnc, keyMac)
     }
 }
 

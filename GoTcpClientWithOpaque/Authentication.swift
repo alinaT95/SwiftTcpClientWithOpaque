@@ -96,7 +96,7 @@ class Authentication {
     func auth2(session: AuthClientSession, msg2:  AuthMsg2) throws -> AuthMsg3 {
         let randomizedPassword = try crypto.dhOprf3(Data(_ : session.password.bytes), msg2.b, r: session.r)
         let nonce = msg2.envU[0..<32]
-        let commonKeys = try crypto.produceSessionKeys(nonce, randomizedPassword)
+        let commonKeys = try crypto.produceKeysToEncryptEnvelope(nonce, randomizedPassword)
         let keyEnc: Data = commonKeys.keyEnc
         let keyMac: Data = commonKeys.keyMac
         let skUBytes = try AuthEnc().decrypt(msg2.envU, keyEnc, keyMac)

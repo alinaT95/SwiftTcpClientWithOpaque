@@ -19,7 +19,7 @@ class ViewController: UIViewController {
     let passwordStr = "123456"
     let registrator = Registration()
     let authenticator = Authentication()
-    let ipServer = "5.165.180.12"
+    let ipServer = "37.112.236.247"
     let port = 9999
     
     let decoder = JSONDecoder()
@@ -33,7 +33,7 @@ class ViewController: UIViewController {
     
     
     @IBAction func logIn(_ sender: Any) {
-        let client = TCPClient(address: "5.166.239.215", port: 9999)
+        let client = TCPClient(address: ipServer, port: Int32(port))
         
         // Do any additional setup after loading the view.
         
@@ -74,44 +74,44 @@ class ViewController: UIViewController {
     
     
     @IBAction func signUp(_ sender: Any) {
+        print("Start sign up...")
         let client = TCPClient(address: ipServer, port: Int32(port))
         switch client.connect(timeout: 100) {
         case .success:
+            print("Connected to server...")
             Promise<Data> { promise in
-                let result = self.registrator.regInit(self.userNameStr, self.passwordStr)
-                self.regClientSession = result.pwRegClientSession
-                var data: [String : Any] = [:]
-                data["userName"] = self.userNameStr
-                data["a"] = ["x" : result.pwRegMsg1.a.x.asDecimalString(), "y" : result.pwRegMsg1.a.y.asDecimalString()]
-                
-                let jsonData = try JSONSerialization.data(withJSONObject: data)
-                let jsonString = String(data: jsonData, encoding: .utf8)!
-                print(jsonString)
+                print("Start client registration...")
+                let regInitRes = self.registrator.regInit(self.userNameStr, self.passwordStr)
+                self.regClientSession = regInitRes.pwRegClientSession
+                let msg1JsonString = try self.registrator.createPwRegMsg1JSon(self.userNameStr, regInitRes.pwRegMsg1)
                 
                 var dataFinal = Data("pwreg\n".bytes)
-                dataFinal.append(contentsOf: jsonString.bytes)
+                dataFinal.append(contentsOf: msg1JsonString.bytes)
                 dataFinal.append(contentsOf: "\n".bytes)
                 
                 switch client.send(data: dataFinal) {
                 case .success:
-                    print("pwreg and reginit are sent")
+                    print("Registration init request was sent succesfully.")
                     promise.fulfill(Data(_ : []))
                 case .failure(let error):
-                    promise.reject(error)
+                    print("Registration init request was failed.")
                     print(error)
+                    promise.reject(error)
                 }
             }
             .then{(dummyResponse : Data)  -> Promise<Data> in
                 return Promise { promise in
                     guard let data = client.read(1024*10, timeout: 100) else {
-                        promise.reject(NSError(domain:"", code:44, userInfo:nil))
+                        promise.reject(NSError(domain:"", code:0, userInfo: [NSLocalizedDescriptionKey: "Can not read data from server."]))
                         return
                     }
                     if let response = String(bytes: data, encoding: .utf8) {
+                        print("Got json from server:")
+                        print(response)
                         promise.fulfill(Data(_ :data))
                     }
                     else{
-                        promise.reject(NSError(domain:"", code:44, userInfo:nil))
+                        promise.reject(NSError(domain:"", code:0, userInfo: [NSLocalizedDescriptionKey: "Data from server is corrupted."] ))
                     }
                 }
                 
@@ -119,10 +119,12 @@ class ViewController: UIViewController {
             .then{(response : Data)  -> Promise<Data> in
                 return Promise { promise in
                     if let json = String(bytes: response, encoding: .utf8) {
-                        print(json)
                         let parsed = try self.decoder.decode(PwRegMsg2ForParsing.self, from: response.asData)
-                        print("This is Parsed:")
+                        print("Parsed json from server:")
                         print(parsed)
+                        
+                        //Todo: check the validity of parsed.B.X (and othhers coordinates) format
+                        //must be decimal or hex string
                         
                         let B = AffinePoint<Secp256r1>(
                             x: Number(parsed.B.X)!,
@@ -135,45 +137,49 @@ class ViewController: UIViewController {
                         let PubS = PublicKey<Secp256r1>(point: PubSPoint)
                         
                         let msg2 = PwRegMsg2(B, PubS)
-                        print(msg2.B.x.asDecimalString())
                         
+                        print(msg2.B.x.asDecimalString())
+                        print(msg2.B.y.asDecimalString())
+                        print(msg2.PubS.x.asDecimalString())
+                        print(msg2.PubS.y.asDecimalString())
+                        
+                        //Todo: check regClientSession is good.
+                        
+                        print("Start step 2 of registration (form user's envelope)...")
                         
                         let msg3 = try self.registrator.reg2(session: self.regClientSession!, msg2: msg2)
                         
                         print("msg3:")
-                        print(msg3.PubU.x.asDecimalString())
+                        print(msg3.PubU.point.x.asDecimalString())
+                        print(msg3.PubU.point.x.asTrimmedData().count)
+                        print(msg3.PubU.point.y.asDecimalString())
+                        print(msg3.PubU.point.y.asTrimmedData().count)
                         print(msg3.EnvU.asData.count)
                         
-                        var data: [String : Any] = [:]
-                        data["EnvU"] = msg3.EnvU.asData.hexEncodedString()
-                        data["PubU"] = ["x" : msg3.PubU.x.asDecimalString(), "y" : msg3.PubU.y.asDecimalString()]
-                        
-                        let jsonData = try JSONSerialization.data(withJSONObject: data)
-                        let jsonString = String(data: jsonData, encoding: .utf8)!
-                        print(jsonString)
-                        
-                        var dataFinal = Data(jsonString.bytes)
+                        let msg3JsonString = try self.registrator.createPwRegMsg3JSon(msg3)
+                        var dataFinal = Data(msg3JsonString.bytes)
                         dataFinal.append(contentsOf: "\n".bytes)
                         
                         switch client.send(data: dataFinal) {
                         case .success:
-                            print("reg2 is sent")
+                            print("Step 2 of registration is done.")
                             promise.fulfill(Data(_ : []))
                         case .failure(let error):
-                            promise.reject(error)
+                            print("Step 2 of registration failed.")
                             print(error)
+                            promise.reject(error)
                         }
                         
                     }
                     else{
-                        promise.reject(NSError(domain:"", code:44, userInfo:nil))
+                        promise.reject(NSError(domain:"", code:44, userInfo:[NSLocalizedDescriptionKey: "Data from server is corrupted."]))
                     }
                 }
             }
             .then{(dummyResponse : Data)  -> Promise<Data> in
                 return Promise { promise in
                     guard let data = client.read(1024*10, timeout: 100) else {
-                        promise.reject(NSError(domain:"", code:44, userInfo:nil))
+                        promise.reject(NSError(domain:"", code:0, userInfo:[NSLocalizedDescriptionKey: "Data from server is corrupted."] ))
                         return
                     }
                     if let response = String(bytes: data, encoding: .utf8) {
@@ -181,7 +187,7 @@ class ViewController: UIViewController {
                         promise.fulfill(Data(_ :data))
                     }
                     else{
-                        promise.reject(NSError(domain:"", code:44, userInfo:nil))
+                        promise.reject(NSError(domain:"", code:0, userInfo:nil))
                     }
                 }
                 
@@ -194,7 +200,7 @@ class ViewController: UIViewController {
                 print("Error happened : " + error.localizedDescription)
             }
         case .failure(let error):
-            print(error)
+            print("Can not establish TCP connection with server having IP address " + ipServer + ".")
         }
         
     }
