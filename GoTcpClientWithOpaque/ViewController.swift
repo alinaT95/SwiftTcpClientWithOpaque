@@ -87,6 +87,71 @@ class ViewController: UIViewController {
                 }
                 
             }
+            .then{(response : Data)  -> Promise<Data> in
+                return Promise { promise in
+                    if let json = String(bytes: response, encoding: .utf8) {
+                        print("jj")
+                        print(json)
+                        let parsed = try self.decoder.decode(AuthMsg2ForParsing.self, from: response.asData)
+                        print("Parsed json from server:")
+                        print(parsed)
+                        
+                        //Todo: check the validity of parsed.B.X (and othhers coordinates) format
+                        //must be decimal or hex string
+                        
+                        let B = AffinePoint<Secp256r1>(
+                            x: Number(parsed.B.X)!,
+                            y: Number(parsed.B.Y)!
+                        )
+                        let EPubSPoint = AffinePoint<Secp256r1>(
+                            x: Number(parsed.EphemeralPubS.X)!,
+                            y: Number(parsed.EphemeralPubS.Y)!
+                        )
+                        let EPubS = PublicKey<Secp256r1>(point: EPubSPoint)
+                        
+                        let envUData = Data (_ :ByteArrayAndHexHelper.hexStrToUInt8Array(hexStr: parsed.EnvU))
+                        let nonceSData = Data (_ :ByteArrayAndHexHelper.hexStrToUInt8Array(hexStr: parsed.NonceS))
+                        let mac1Data = Data (_ :ByteArrayAndHexHelper.hexStrToUInt8Array(hexStr: parsed.Mac1))
+                        let msg2 = AuthMsg2(B, envUData, nonceSData, EPubS, mac1Data)
+                        
+                        print(msg2.b.x.asDecimalString())
+                        print(msg2.b.y.asDecimalString())
+                        print(msg2.ePubS.x.asDecimalString())
+                        print(msg2.ePubS.y.asDecimalString())
+                        
+                        //Todo: check authClientSession is good.
+                        
+                       print("Start step 2 of registration (form user's envelope)...")
+                        
+                        let msg3 = try self.authenticator.auth2(session: self.authClientSession!, msg2: msg2)
+                        
+                      /*  print("msg3:")
+                        print(msg3.PubU.point.x.asDecimalString())
+                        print(msg3.PubU.point.x.asTrimmedData().count)
+                        print(msg3.PubU.point.y.asDecimalString())
+                        print(msg3.PubU.point.y.asTrimmedData().count)
+                        print(msg3.EnvU.asData.count)
+                        
+                        let msg3JsonString = try self.registrator.createPwRegMsg3JSon(msg3)
+                        var dataFinal = Data(msg3JsonString.bytes)
+                        dataFinal.append(contentsOf: "\n".bytes)
+                        
+                        switch client.send(data: dataFinal) {
+                        case .success:
+                            print("Step 2 of registration is done.")
+                            promise.fulfill(Data(_ : []))
+                        case .failure(let error):
+                            print("Step 2 of registration failed.")
+                            print(error)
+                            promise.reject(error)
+                        }*/
+                        promise.fulfill(Data(_ : []))
+                    }
+                    else{
+                        promise.reject(NSError(domain:"", code:44, userInfo:[NSLocalizedDescriptionKey: "Data from server is corrupted."]))
+                    }
+                }
+            }
             .done{response in
                 print("Done")
                 self.authClientSession = nil

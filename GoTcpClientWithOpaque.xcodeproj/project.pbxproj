@@ -28,6 +28,7 @@
 		5B7F823826C0F4D7001A11B8 /* Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7F823726C0F4D7001A11B8 /* Registration.swift */; };
 		5B7F823D26C120C7001A11B8 /* AuthEnc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7F823C26C120C7001A11B8 /* AuthEnc.swift */; };
 		5B7F824226C12A0B001A11B8 /* Authentication.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7F824126C12A0B001A11B8 /* Authentication.swift */; };
+		5B8B1EA726C31458008D2669 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8B1EA626C31458008D2669 /* Utils.swift */; };
 		9F927B30311AF51C96ADF1F9 /* Pods_GoTcpClientWithOpaque.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1E29AE2066DEC22D61A34BE /* Pods_GoTcpClientWithOpaque.framework */; };
 		E2279384FD7C9CA455B8DF8C /* Pods_GoTcpClientWithOpaque_GoTcpClientWithOpaqueUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 40C265A1AB2792253FC272C2 /* Pods_GoTcpClientWithOpaque_GoTcpClientWithOpaqueUITests.framework */; };
 		ECA932BFF456DB871A196AC0 /* Pods_GoTcpClientWithOpaqueTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D93CB3CB72D65801DCD3FF2 /* Pods_GoTcpClientWithOpaqueTests.framework */; };
@@ -83,6 +84,7 @@
 		5B7F823726C0F4D7001A11B8 /* Registration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registration.swift; sourceTree = "<group>"; };
 		5B7F823C26C120C7001A11B8 /* AuthEnc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthEnc.swift; sourceTree = "<group>"; };
 		5B7F824126C12A0B001A11B8 /* Authentication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authentication.swift; sourceTree = "<group>"; };
+		5B8B1EA626C31458008D2669 /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		A0DBB8736F718A52E75CB730 /* Pods-GoTcpClientWithOpaque.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoTcpClientWithOpaque.release.xcconfig"; path = "Target Support Files/Pods-GoTcpClientWithOpaque/Pods-GoTcpClientWithOpaque.release.xcconfig"; sourceTree = "<group>"; };
 		A4ACAB45249C1E4C1077B6E3 /* Pods-GoTcpClientWithOpaqueTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoTcpClientWithOpaqueTests.release.xcconfig"; path = "Target Support Files/Pods-GoTcpClientWithOpaqueTests/Pods-GoTcpClientWithOpaqueTests.release.xcconfig"; sourceTree = "<group>"; };
 		B272A848EA6C4EB4F4E09CC7 /* Pods-GoTcpClientWithOpaque-GoTcpClientWithOpaqueUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GoTcpClientWithOpaque-GoTcpClientWithOpaqueUITests.debug.xcconfig"; path = "Target Support Files/Pods-GoTcpClientWithOpaque-GoTcpClientWithOpaqueUITests/Pods-GoTcpClientWithOpaque-GoTcpClientWithOpaqueUITests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -179,6 +181,7 @@
 				5B7F823726C0F4D7001A11B8 /* Registration.swift */,
 				5B7F823C26C120C7001A11B8 /* AuthEnc.swift */,
 				5B7F824126C12A0B001A11B8 /* Authentication.swift */,
+				5B8B1EA626C31458008D2669 /* Utils.swift */,
 			);
 			path = GoTcpClientWithOpaque;
 			sourceTree = "<group>";
@@ -459,6 +462,7 @@
 				5B60C5EB26C05AAC00AB6750 /* AppDelegate.swift in Sources */,
 				5B60C62826C05E7800AB6750 /* TCPClient.swift in Sources */,
 				5B60C62326C05E4A00AB6750 /* Socket.swift in Sources */,
+				5B8B1EA726C31458008D2669 /* Utils.swift in Sources */,
 				5B7F823326C0E4C9001A11B8 /* ByteArrayAndHexHelper.swift in Sources */,
 				5B7F822626C0E237001A11B8 /* Array.swift in Sources */,
 				5B60C61E26C05DF700AB6750 /* Result.swift in Sources */,

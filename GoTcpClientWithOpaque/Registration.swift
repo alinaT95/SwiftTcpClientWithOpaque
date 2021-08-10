@@ -18,12 +18,6 @@ struct PwRegMsg1 {
     }
 }
 
-
-struct Point: Codable {
-    var X: String
-    var Y: String
-}
-
 struct PwRegMsg2ForParsing : Codable {
     var B: Point
     var PubS: Point

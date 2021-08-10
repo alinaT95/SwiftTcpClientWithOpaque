@@ -41,6 +41,14 @@ struct AuthMsg1 {
     }
 }
 
+
+struct AuthMsg2ForParsing : Codable {
+    var B: Point
+    var EphemeralPubS: Point
+    var NonceS: String
+    var EnvU: String
+    var Mac1: String
+}
 struct AuthMsg2 {
     let b: AffinePoint<Secp256r1>
     let envU: Data
@@ -108,7 +116,7 @@ class Authentication {
     // protocol for the client.
     func auth2(session: AuthClientSession, msg2:  AuthMsg2) throws -> AuthMsg3 {
         let randomizedPassword = try crypto.dhOprf3(Data(_ : session.password.bytes), msg2.b, r: session.r)
-        let nonce = msg2.envU[0..<32]
+        print("randomizedPassword from authentication flow = " + randomizedPassword.hexEncodedString())      /*  let nonce = msg2.envU[0..<32]
         let commonKeys = try crypto.produceKeysToEncryptEnvelope(nonce, randomizedPassword)
         let keyEnc: Data = commonKeys.keyEnc
         let keyMac: Data = commonKeys.keyMac
@@ -173,8 +181,8 @@ class Authentication {
         
         var XCrypt2 = "Finish".toData()
         XCrypt2.append(XCrypt)
-        let mac2 = HmacHelper().computeHmac(key: Km3, data: XCrypt2)
-        
+        let mac2 = HmacHelper().computeHmac(key: Km3, data: XCrypt2)*/
+        let mac2 = Data(_ : [])
         return AuthMsg3(mac2)
     }
     

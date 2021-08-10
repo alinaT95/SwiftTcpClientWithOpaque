@@ -14,8 +14,8 @@
             filePath = "GoTcpClientWithOpaque/Authentication.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "152"
-            endingLineNumber = "152"
+            startingLineNumber = "160"
+            endingLineNumber = "160"
             landmarkName = "auth2(session:msg2:)"
             landmarkType = "7">
          </BreakpointContent>
