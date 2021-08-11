@@ -125,26 +125,22 @@ class ViewController: UIViewController {
                         
                         let msg3 = try self.authenticator.auth2(session: self.authClientSession!, msg2: msg2)
                         
-                      /*  print("msg3:")
-                        print(msg3.PubU.point.x.asDecimalString())
-                        print(msg3.PubU.point.x.asTrimmedData().count)
-                        print(msg3.PubU.point.y.asDecimalString())
-                        print(msg3.PubU.point.y.asTrimmedData().count)
-                        print(msg3.EnvU.asData.count)
+                        print("msg3:")
+                        print(msg3.mac2.hexEncodedString())
                         
-                        let msg3JsonString = try self.registrator.createPwRegMsg3JSon(msg3)
+                        let msg3JsonString = try self.authenticator.createAuthMsg3JSon(msg3)
                         var dataFinal = Data(msg3JsonString.bytes)
                         dataFinal.append(contentsOf: "\n".bytes)
                         
                         switch client.send(data: dataFinal) {
                         case .success:
-                            print("Step 2 of registration is done.")
+                            print("Step 2 of authentication is done.")
                             promise.fulfill(Data(_ : []))
                         case .failure(let error):
-                            print("Step 2 of registration failed.")
+                            print("Step 2 of authentication failed.")
                             print(error)
                             promise.reject(error)
-                        }*/
+                        }
                         promise.fulfill(Data(_ : []))
                     }
                     else{
@@ -318,37 +314,3 @@ class ViewController: UIViewController {
     }
 }
 
-
-// Do any additional setup after loading the view.
-
-/*   let expected = AffinePoint<Secp256r1>(
- x: 1,
- y: 0
- )
- let expected2 = AffinePoint<Secp256r1>(
- x: 0,
- y: 2
- )*/
-// guard let x = Number("89", radix: 10) else { return <#default value#> }
-// _ = expected * x
-
-//  let G = Secp256r1.G
-// let nPlusOne = Secp256r1.order + 1
-
-
-/*  let pointNPlusOne: AffinePoint<Secp256r1> = expected * nPlusOne
- let publicKey = PublicKey<Secp256r1>(point: Secp256r1.G * nPlusOne)
- 
- let pointNPlus: AffinePoint<Secp256r1> =  AffinePoint<Secp256r1>.addition(expected, expected2) ?? G*/
-
-/*     let point: AffinePoint<Secp256r1> =  Crypto().hashToECDummy(Data(_: [0x01, 0x02]))
- print("here")
- print(point.x)
- print(point.y)*/
-
-/*  switch client.connect(timeout: 10) {
- case .success:
- print("y")
- case .failure(let error):
- print("n")
- }*/

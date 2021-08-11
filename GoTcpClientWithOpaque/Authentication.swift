@@ -95,6 +95,15 @@ class Authentication {
         return jsonString
     }
     
+    func createAuthMsg3JSon(_ msg3: AuthMsg3) throws -> String {
+        var data: [String : Any] = [:]
+        data["Mac2"] = msg3.mac2.hexEncodedString()
+        let jsonData = try JSONSerialization.data(withJSONObject: data)
+        let jsonString = String(data: jsonData, encoding: .utf8)!
+        print(jsonString)
+        return jsonString
+    }
+    
     // AuthInit initiates the authentication protocol. It's run on the client and,
     // on success, returns a nil error, a client auth session, and an AuthMsg1
     // struct. The AuthMsg1 struct should be sent to the server.
@@ -200,7 +209,6 @@ class Authentication {
         XCrypt2.append(XCrypt)
         let mac2 = HmacHelper().computeHmac(key: Km3, data: XCrypt2)
         return AuthMsg3(mac2)
-//        let mac2 = Data(_ : [])
         
     }
     
