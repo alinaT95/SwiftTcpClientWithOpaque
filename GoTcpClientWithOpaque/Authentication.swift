@@ -122,7 +122,7 @@ class Authentication {
         let keyEnc: Data = commonKeys.keyEnc
         let keyMac: Data = commonKeys.keyMac
         let skUBytes = try AuthEnc().decrypt(msg2.envU, keyEnc, keyMac)
-        let skU = skUBytes.toNumber()
+        let privU = skUBytes.toNumber()
         print("skUBytes = " + skUBytes.hexEncodedString())
         let pubSX = msg2.envU[64..<96]
         let pubSY = msg2.envU[96..<128]
@@ -153,7 +153,6 @@ class Authentication {
         print("XCrypt = " + XCrypt.hexEncodedString())
         print("info = " + info.hexEncodedString())
         
-        
         var Q1Input = Data(_ : session.ephemeralKeyPairU.publicKey.x.asTrimmedData())
         Q1Input.append(session.ephemeralKeyPairU.publicKey.y.asTrimmedData())
         Q1Input.append("user".toData())
@@ -171,10 +170,10 @@ class Authentication {
         let Q2 = Q2Input.hash().toNumber()
         
         
-        
-        let exp = Q2 * skU + session.ephemeralKeyPairU.privateKey.number
-        let pubSQ1: AffinePoint<Secp256r1> = pubS * Q1
-        let ikmU = AffinePoint<Secp256r1>.addition(msg2.ePubS.point, pubSQ1)!
+        let exp = Q1 * privU + session.ephemeralKeyPairU.privateKey.number
+        let pubSQ1: AffinePoint<Secp256r1> = pubS * Q2
+        let sum = AffinePoint<Secp256r1>.addition(msg2.ePubS.point, pubSQ1)!
+        let ikmU = sum * exp
         
         print("ikmU.x = " + ikmU.x.asDecimalString())
         print("ikmU.y = " + ikmU.y.asDecimalString())

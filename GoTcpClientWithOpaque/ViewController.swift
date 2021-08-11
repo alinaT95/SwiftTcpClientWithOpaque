@@ -19,7 +19,7 @@ class ViewController: UIViewController {
  //   let passwordStr = "123456"
     let registrator = Registration()
     let authenticator = Authentication()
-    let ipServer = "37.112.236.247"
+    let ipServer = "94.180.60.101"
     let port = 9999
     
     let decoder = JSONDecoder()
