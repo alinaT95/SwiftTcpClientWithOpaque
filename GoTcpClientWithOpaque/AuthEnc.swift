@@ -23,9 +23,9 @@ class AuthEnc{
     func xorTransform(_ text: Data, _ key: Data) -> Data {
         //check lens
         var xored = Data(_ : [])
-        print(text.count)
-        print(key.count)
-        print(text.hexEncodedString())
+       // print(text.count)
+       // print(key.count)
+       // print(text.hexEncodedString())
         for index in 0...text.count-1 {
             xored.append(text[index] ^ key[index])
         }

@@ -19,7 +19,7 @@ class ViewController: UIViewController {
  //   let passwordStr = "123456"
     let registrator = Registration()
     let authenticator = Authentication()
-    let ipServer = "94.180.60.101"
+    let ipServer = "127.0.0.1"//"94.180.60.101"
     let port = 9999
     
     let decoder = JSONDecoder()
@@ -34,7 +34,7 @@ class ViewController: UIViewController {
     
     
     @IBAction func logIn(_ sender: Any) {
-        print("Start log in...")
+        print("\n \n Start log in...")
         let userNameStr = userName.text ?? "Alina"
         let passwordStr = password.text ?? "123456"
         let client = TCPClient(address: ipServer, port: Int32(port))
@@ -46,6 +46,7 @@ class ViewController: UIViewController {
                 let authInitRes = try self.authenticator.authInit(userNameStr, passwordStr)
                 self.authClientSession = authInitRes.authClientSession
                 let msg1JsonString = try self.authenticator.createAuthMsg1JSon(authInitRes.authMsg1)
+                print("===============================")
                 
                 var dataFinal = Data("auth\n".bytes)
                 dataFinal.append(contentsOf: msg1JsonString.bytes)
@@ -90,8 +91,6 @@ class ViewController: UIViewController {
             .then{(response : Data)  -> Promise<Data> in
                 return Promise { promise in
                     if let json = String(bytes: response, encoding: .utf8) {
-                        print("jj")
-                        print(json)
                         let parsed = try self.decoder.decode(AuthMsg2ForParsing.self, from: response.asData)
                         print("Parsed json from server:")
                         print(parsed)
@@ -114,10 +113,6 @@ class ViewController: UIViewController {
                         let mac1Data = Data (_ :ByteArrayAndHexHelper.hexStrToUInt8Array(hexStr: parsed.Mac1))
                         let msg2 = AuthMsg2(B, envUData, nonceSData, EPubS, mac1Data)
                         
-                        print(msg2.b.x.asDecimalString())
-                        print(msg2.b.y.asDecimalString())
-                        print(msg2.ePubS.x.asDecimalString())
-                        print(msg2.ePubS.y.asDecimalString())
                         
                         //Todo: check authClientSession is good.
                         
@@ -171,7 +166,7 @@ class ViewController: UIViewController {
     
     
     @IBAction func signUp(_ sender: Any) {
-        print("Start sign up...")
+        print("\n \n Start sign up...")
         let userNameStr = userName.text ?? "Alina"
         let passwordStr = password.text ?? "123456"
         let client = TCPClient(address: ipServer, port: Int32(port))
@@ -183,7 +178,7 @@ class ViewController: UIViewController {
                 let regInitRes = self.registrator.regInit(userNameStr, passwordStr)
                 self.regClientSession = regInitRes.pwRegClientSession
                 let msg1JsonString = try self.registrator.createPwRegMsg1JSon(regInitRes.pwRegMsg1)
-                
+                print("===============================")
                 var dataFinal = Data("pwreg\n".bytes)
                 dataFinal.append(contentsOf: msg1JsonString.bytes)
                 dataFinal.append(contentsOf: "\n".bytes)
@@ -243,17 +238,18 @@ class ViewController: UIViewController {
                         print(msg2.PubS.y.asDecimalString())
                         
                         //Todo: check regClientSession is good.
-                        
+                        print("===============================")
                         print("Start step 2 of registration (form user's envelope)...")
                         
                         let msg3 = try self.registrator.reg2(session: self.regClientSession!, msg2: msg2)
                         
-                        print("msg3:")
-                        print(msg3.PubU.point.x.asDecimalString())
-                        print(msg3.PubU.point.x.asTrimmedData().count)
-                        print(msg3.PubU.point.y.asDecimalString())
-                        print(msg3.PubU.point.y.asTrimmedData().count)
-                        print(msg3.EnvU.asData.count)
+                        print("Prepared data for Server #2:")
+                        print("===============================")
+                        print("PubU:")
+                        print("X: "  + msg3.PubU.point.x.asDecimalString())
+                        print("Y: " + msg3.PubU.point.y.asDecimalString())
+                        print("Env: " + msg3.EnvU.asData.hexEncodedString())
+                        print("===============================")
                         
                         let msg3JsonString = try self.registrator.createPwRegMsg3JSon(msg3)
                         var dataFinal = Data(msg3JsonString.bytes)

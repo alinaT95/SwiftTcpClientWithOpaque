@@ -73,6 +73,7 @@ class Registration {
         data["a"] = ["x" : msg1.a.x.asDecimalString(), "y" : msg1.a.y.asDecimalString()]
         let jsonData = try JSONSerialization.data(withJSONObject: data)
         let jsonString = String(data: jsonData, encoding: .utf8)!
+        print("Prepared data for Server #1:")
         print(jsonString)
         return jsonString
     }
@@ -122,14 +123,14 @@ class Registration {
         let keyMac: Data = envKeys.keyMac
         let secEnvelope: Data = keyPairU.privateKey.asData
         var clearEnvelope = Data(_ : msg2.PubS.point.x.asTrimmedData())
-        print(msg2.PubS.point.x.asTrimmedData().count)
-        print(msg2.PubS.point.x.asData.count)
+      //  print(msg2.PubS.point.x.asTrimmedData().count)
+       // print(msg2.PubS.point.x.asData.count)
         clearEnvelope.append(msg2.PubS.point.y.asTrimmedData())
-        print(msg2.PubS.point.y.asTrimmedData().count)
+      //  print(msg2.PubS.point.y.asTrimmedData().count)
         clearEnvelope.append(keyPairU.publicKey.point.x.asTrimmedData())
-        print(keyPairU.publicKey.point.x.asTrimmedData().count)
+       // print(keyPairU.publicKey.point.x.asTrimmedData().count)
         clearEnvelope.append(keyPairU.publicKey.point.y.asTrimmedData())
-        print(keyPairU.publicKey.point.y.asTrimmedData().count)
+      //  print(keyPairU.publicKey.point.y.asTrimmedData().count)
         clearEnvelope.append(contentsOf: session.userName.bytes)
         let envelopeU = try AuthEnc().encrypt(secEnvelope, clearEnvelope, nonce, keyEnc, keyMac)
         return PwRegMsg3(envelopeU, keyPairU.publicKey)

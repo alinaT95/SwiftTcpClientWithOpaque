@@ -37,11 +37,11 @@ class Crypto {
     
     func hashToECDummy(_ data: Data) -> AffinePoint<Secp256r1> {
         let G = Secp256r1.G
-        print(G.x)
-        print(G.y)
+      //  print(G.x)
+        //print(G.y)
         let hash = data.hash() //sha256
-        print(data.hexEncodedString())
-        print(hash.hexEncodedString())
+       // print(data.hexEncodedString())
+      //  print(hash.hexEncodedString())
         let res: AffinePoint<Secp256r1> = G * hash.toNumber()
         return res
     }

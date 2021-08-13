@@ -91,6 +91,7 @@ class Authentication {
         data["EphemeralPubU"] = ["x" : msg1.ePubU.point.x.asDecimalString(), "y" : msg1.ePubU.point.y.asDecimalString()]
         let jsonData = try JSONSerialization.data(withJSONObject: data)
         let jsonString = String(data: jsonData, encoding: .utf8)!
+        print("Prepared data for Server #1:")
         print(jsonString)
         return jsonString
     }
@@ -172,8 +173,8 @@ class Authentication {
         Q2Input.append("srvr".toData())
         Q2Input.append(info)
         
-        print("Q1Input.hash() = " + Q1Input.hash().hexEncodedString())
-        print("Q2Input.hash() = " + Q2Input.hash().hexEncodedString())
+        print("Q1 = " + Q1Input.hash().hexEncodedString())
+        print("Q2 = " + Q2Input.hash().hexEncodedString())
         
         let Q1 = Q1Input.hash().toNumber()
         let Q2 = Q2Input.hash().toNumber()
